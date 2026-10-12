@@ -148,7 +148,7 @@ int main()
 
 
     std::cout << std::fixed << std::setprecision(4);
-    const int PRINT_ROWS = 4;
+    const int PRINT_ROWS = 1;
     const int PRINT_COLS = N; // change to e.g. 8 to see only the start of each row
 
     print_rows("CPU result", h_C_cpu.data(), N, PRINT_ROWS, PRINT_COLS);
