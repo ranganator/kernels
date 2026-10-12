@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <cuda_runtime.h>
+#include <iomanip>
 
 __global__ void naive_matmul(const float *A, const float *B, float *C, int M, int K, int N)
 {
@@ -33,6 +34,21 @@ void cpu_matmul(const float *A, const float *B, float *C, int M, int K, int N)
             C[i * N + j] = sum;
         }
     }
+}
+
+void print_rows(const char *label, const float *C, int N, int rows, int cols)
+{
+    std::cout << label << ":\n";
+    for (int i = 0; i < rows; i++)
+    {
+        std::cout << "Row " << i << ": ";
+        for (int j = 0; j < cols; j++)
+        {
+            std::cout << C[i * N + j] << " ";
+        }
+        std::cout << "\n";
+    }
+    std::cout << "\n";
 }
 
 int main()
@@ -93,5 +109,11 @@ int main()
     cudaFree(d_B);
     cudaFree(d_C);
 
+    std::cout << std::fixed << std::setprecision(4);
+    const int PRINT_ROWS = 4;
+    const int PRINT_COLS = N; // change to e.g. 8 to see only the start of each row
+
+    print_rows("CPU result", h_C_cpu.data(), N, PRINT_ROWS, PRINT_COLS);
+    print_rows("GPU result", h_C_gpu.data(), N, PRINT_ROWS, PRINT_COLS);
     return 0;
 }
