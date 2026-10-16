@@ -112,34 +112,29 @@ for(int i = 0; i <TM;i++){
 
 }
 
+__syncthreads();
 
 
 
+int globalCrow = blockRow + threadRow;
 
+int globalCcol = blockCol + threadCol;
 
+for(int i = 0; i<TM;i++){
 
+    for(int j = 0; j< TN; j++){
+         
+        if(globalCrow+ i < M && globalCcol + j < N){
+        C[(globalCrow+i)*N  + globalCcol] = acc[i][j];
+        }else{
 
+           C[(globalCrow+i)*N  + globalCcol] = 0.0f;  
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    }
 }
+}
+
+
 
 }
 
@@ -209,10 +204,12 @@ int main()
     cudaMemcpy(d_B, h_B.data(), bytesB, cudaMemcpyHostToDevice);
 
     dim3 block(16, 16);
+   
 
     dim3 grid(
-        (N + block.x - 1) / block.x,
-        (N + block.y - 1) / block.y);
+        (N + BN - 1) / BN,
+        (M + BM - 1) / BM
+    );
 
     matmul_2dreg<<<grid, block>>>(d_A, d_B, d_C, M, K, N);
 
