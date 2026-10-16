@@ -29,11 +29,114 @@ int threadRow = threadIdx.y * TM; // because each thread computes a TM x TN outp
 
 int threadCol = threadIdx.x * TN;
 
+int tid = threadIdx.y * blockDim.x  + threadIdx.x;// flat thread index
 
+int num_threads = blockDim.x*blockDim.y;
+
+float acc[TM][TN] = {0.0f}; // the 4x4 output elements which is being accumulated into from multiplying registrs
+
+float Areg[TM]; // values to load into registers from As
+
+float Breg[TN]; // values to load into registers from Bs
+// why did we choose our block size?
 for(int k0 = 0; k0<K; k0+= BK ){
 // here we load a 64x8 tile from A into As and a 8x64 tile into Bs each iteration
 
-// As moves horizontally, Bs moves vertically, so the 
+// As moves horizontally, Bs moves vertically, so the col in As is controlled by k0 and the row in Bs is controlled by K0;
+
+for( int idx = tid; idx < BM*BK; idx += num_threads ){ // since the number of threads is less than the number of elements in the shared block, each thread loads 2 elements
+int Arow = tid/BK;
+
+int Acol = tid % BK;
+
+int globalArow = blockRow + Arow;
+
+int globalAcol = Acol + k0;
+
+if(globalArow < M && globalAcol < K){
+
+    As[Arow][Acol] = A[globalArow*K + globalAcol];
+}else{
+
+    As[Arow][Acol] = 0.0f;
+}
+}
+
+for( int idx = tid; tid < BK*BN; idx += num_threads ){ // since the number of threads is less than the number of elements in the shared block, each thread loads 2 elements
+int Brow = tid/BN;
+
+int Bcol = tid % BN;
+
+int globalBrow = Brow + k0;
+
+int globalBcol = blockCol + Bcol;
+
+if(globalBrow < K && globalBcol < N){
+
+    Bs[Brow][Bcol] = A[globalBrow*N + globalBcol];
+}else{
+
+    Bs[Brow][Bcol] = 0.0f;
+}
+}
+
+__syncthreads(); // wait for threads to load everything into tiles from global memory
+
+
+for(int k = 0; k<BK; k++){ // after we load each tile, within each tile we go through each slice
+
+ // now we have to load from shared memory into registers 
+
+// so how this works is that one thread is loading the first element of the first TM rows into Areg and is loading the first element of the first TN cols into B reg
+
+for(int i = 0; i<TM;i++){
+
+    Areg[i] = As[threadRow+i][k];
+}
+
+for(int j = 0; j<TN;j++){
+
+    Breg[j] = Bs[k][threadCol+j];
+}
+
+
+for(int i = 0; i <TM;i++){
+
+    for(int j = 0; j < TN;j++){
+
+        acc[i][j] += Areg[i]*Breg[j];
+    }
+}  
+
+}
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 }
