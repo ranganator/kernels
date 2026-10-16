@@ -20,9 +20,9 @@ __shared__ float As[BM][BK];
 __shared__ float Bs[BK][BN];
 
 
-int blockRow = blockDim.y * BM; // this is to know which output indices should be in the current block, because each block outputs 64x64 elements
+int blockRow = blockIdx.y * BM; // this is to know which output indices should be in the current block, because each block outputs 64x64 elements
 
-int blockCol = blockDim.x * BN; 
+int blockCol = blockIdx.x * BN; // which block
 
 int threadRow = threadIdx.y * TM; // because each thread computes a TM x TN output elements, we compute threadrow and threadcol to find out what elements the thread
                                   // should work on
@@ -45,9 +45,9 @@ for(int k0 = 0; k0<K; k0+= BK ){
 // As moves horizontally, Bs moves vertically, so the col in As is controlled by k0 and the row in Bs is controlled by K0;
 
 for( int idx = tid; idx < BM*BK; idx += num_threads ){ // since the number of threads is less than the number of elements in the shared block, each thread loads 2 elements
-int Arow = tid/BK;
+int Arow = idx/BK;
 
-int Acol = tid % BK;
+int Acol = idx % BK;
 
 int globalArow = blockRow + Arow;
 
@@ -62,10 +62,10 @@ if(globalArow < M && globalAcol < K){
 }
 }
 
-for( int idx = tid; tid < BK*BN; idx += num_threads ){ // since the number of threads is less than the number of elements in the shared block, each thread loads 2 elements
-int Brow = tid/BN;
+for( int idx = tid; idx < BK*BN; idx += num_threads ){ // since the number of threads is less than the number of elements in the shared block, each thread loads 2 elements
+int Brow = idx/BN;
 
-int Bcol = tid % BN;
+int Bcol = idx % BN;
 
 int globalBrow = Brow + k0;
 
@@ -73,7 +73,7 @@ int globalBcol = blockCol + Bcol;
 
 if(globalBrow < K && globalBcol < N){
 
-    Bs[Brow][Bcol] = A[globalBrow*N + globalBcol];
+    Bs[Brow][Bcol] = B[globalBrow*N + globalBcol];
 }else{
 
     Bs[Brow][Bcol] = 0.0f;
@@ -110,9 +110,11 @@ for(int i = 0; i <TM;i++){
 
 }
 
+__syncthreads();
+
 }
 
-__syncthreads();
+
 
 
 
@@ -125,12 +127,8 @@ for(int i = 0; i<TM;i++){
     for(int j = 0; j< TN; j++){
          
         if(globalCrow+ i < M && globalCcol + j < N){
-        C[(globalCrow+i)*N  + globalCcol] = acc[i][j];
-        }else{
-
-           C[(globalCrow+i)*N  + globalCcol] = 0.0f;  
-
-    }
+        C[(globalCrow+i)*N  + globalCcol+j] = acc[i][j];
+        }
 }
 }
 
