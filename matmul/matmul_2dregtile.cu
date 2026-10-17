@@ -11,7 +11,7 @@ constexpr int BN = 64;
 
 constexpr int TM = 4;
 
-constexpr int TN = 4;
+constexpr int TN = 8;
 
 __global__ void matmul_2dreg(const float *A, const float *B, float *C, int M, int K, int N)
 {
@@ -201,7 +201,7 @@ int main()
     cudaMemcpy(d_A, h_A.data(), bytesA, cudaMemcpyHostToDevice);
     cudaMemcpy(d_B, h_B.data(), bytesB, cudaMemcpyHostToDevice);
 
-    dim3 block(16, 16);
+    dim3 block(BM/TM, BN/TN);
    
 
     dim3 grid(
