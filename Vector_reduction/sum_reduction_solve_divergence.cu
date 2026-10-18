@@ -9,20 +9,20 @@ __global__ void naive_reduction(const float *input, float *output, int N)
     int tid = threadIdx.x;
     int idx = blockIdx.x * blockDim.x + tid;
 
-     sdata[tid] = (idx < N) ? input[idx] : 0.0f;
-     
+    sdata[tid] = (idx < N) ? input[idx] : 0.0f;
+
     __syncthreads();
 
     for (int stride = 1; stride < blockDim.x; stride *= 2)
     {
 
-        int index = 2*stride*tid;
-    
-           if (index < blockDim.x) {
-sdata[index] += sdata[index + stride];
-}
+        int index = 2 * stride * tid;
 
-        
+        if (index < blockDim.x)
+        {
+            sdata[index] += sdata[index + stride];
+        }
+
         __syncthreads();
     }
 
@@ -60,15 +60,12 @@ int main()
     while (current_size > 1)
     {
 
-      int num_blocks = (current_size + BLOCK_SIZE - 1) / BLOCK_SIZE;
-
-
+        int num_blocks = (current_size + BLOCK_SIZE - 1) / BLOCK_SIZE;
 
         naive_reduction<<<num_blocks, BLOCK_SIZE, BLOCK_SIZE * sizeof(float)>>>(d_input, d_output, current_size);
 
         cudaDeviceSynchronize();
 
-       
         float *temp = d_input;
         d_input = d_output;
         d_output = temp;
