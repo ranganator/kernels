@@ -93,9 +93,15 @@ int main()
 {
     // 1. Matrix dimensions
 
+<<<<<<< HEAD
+    const int M = 8192;
+    const int K = 8192;
+    const int N = 8192;
+=======
     const int M = 1024;
     const int K = 1024;
     const int N = 1024;
+>>>>>>> origin/main
     
     const size_t bytesA = (size_t)M * K * sizeof(float);
     const size_t bytesB = (size_t)K * N * sizeof(float);
@@ -140,18 +146,31 @@ int main()
 
     cudaMemcpy(h_C_gpu.data(), d_C, bytesC, cudaMemcpyDeviceToHost);
 
+<<<<<<< HEAD
+    // cpu_matmul(h_A.data(), h_B.data(), h_C_cpu.data(), M, K, N);
+=======
     cpu_matmul(h_A.data(), h_B.data(), h_C_cpu.data(), M, K, N);
+>>>>>>> origin/main
 
     cudaFree(d_A);
     cudaFree(d_B);
     cudaFree(d_C);
 
 
+<<<<<<< HEAD
+    // std::cout << std::fixed << std::setprecision(4);
+    // const int PRINT_ROWS = 1;
+    // const int PRINT_COLS = N; // change to e.g. 8 to see only the start of each row
+
+    // print_rows("CPU result", h_C_cpu.data(), N, PRINT_ROWS, PRINT_COLS);
+    // print_rows("GPU result", h_C_gpu.data(), N, PRINT_ROWS, PRINT_COLS);
+=======
     std::cout << std::fixed << std::setprecision(4);
     const int PRINT_ROWS = 1;
     const int PRINT_COLS = N; // change to e.g. 8 to see only the start of each row
 
     print_rows("CPU result", h_C_cpu.data(), N, PRINT_ROWS, PRINT_COLS);
     print_rows("GPU result", h_C_gpu.data(), N, PRINT_ROWS, PRINT_COLS);
+>>>>>>> origin/main
     return 0;
 }
